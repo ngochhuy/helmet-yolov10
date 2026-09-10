@@ -1,0 +1,9 @@
+extends: base.yaml
+
+experiment:
+  id: E1
+  name: baseline
+  description: YOLOv10n 640x640 without project-specific improvements
+
+output:
+  root: experiments/E1

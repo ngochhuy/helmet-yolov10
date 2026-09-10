@@ -1,0 +1,29 @@
+[project]
+name = "helmet-yolov10-research"
+version = "0.1.0"
+description = "Reproducible YOLOv10n helmet-detection experiments."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "PyYAML>=6.0,<7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8,<10",
+]
+
+[project.scripts]
+helmet-train = "helmet_yolov10.training.train:main"
+helmet-evaluate = "helmet_yolov10.evaluation.evaluate:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/helmet_yolov10"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

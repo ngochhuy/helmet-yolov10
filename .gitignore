@@ -1,0 +1,28 @@
+# Python / uv
+__pycache__/
+*.py[cod]
+.venv/
+
+# Pretrained and trained model weights
+weights/*.pt
+!weights/.gitkeep
+
+# Data may be large or governed by its source license. Keep only manifests here.
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# Generated experimental artefacts
+experiments/*/checkpoints/
+experiments/*/logs/*
+!experiments/*/logs/.gitkeep
+experiments/*/predictions/
+experiments/*/figures/*
+!experiments/*/figures/.gitkeep
+
+# Aggregated generated results
+results/metrics/*
+!results/metrics/.gitkeep
+results/figures/*
+!results/figures/.gitkeep
