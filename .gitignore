@@ -2,9 +2,10 @@
 __pycache__/
 *.py[cod]
 .venv/
+.ipynb_checkpoints/
 
 # Pretrained and trained model weights
-weights/*.pt
+weights/*
 !weights/.gitkeep
 
 # Data may be large or governed by its source license. Keep only manifests here.
@@ -13,13 +14,12 @@ data/raw/*
 data/processed/*
 !data/processed/.gitkeep
 
-# Generated experimental artefacts
-experiments/*/checkpoints/
-experiments/*/logs/*
+# Generated experiment runs and artefacts
+experiments/**/*
+!experiments/**/logs/
 !experiments/*/logs/.gitkeep
-experiments/*/predictions/
-experiments/*/figures/*
-!experiments/*/figures/.gitkeep
+!experiments/**/figures/
+!experiments/**/figures/.gitkeep
 
 # Aggregated generated results
 results/metrics/*

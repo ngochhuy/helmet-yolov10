@@ -1,0 +1,18 @@
+extends: base.yaml
+
+experiment:
+  id: E4
+  name: tiled_inference
+  description: YOLOv10n inference on overlapping 640x640 tiles for small objects
+
+tiled_inference:
+  tile_size: [640, 640]
+  overlap_candidates: [0.20, 0.25, 0.30]
+  confidence_threshold: 0.001
+  merge_iou_threshold: 0.7
+  merge_method: class_aware_nms
+  selection_split: val
+  selection_metric: metrics/mAP50-95(B)
+
+output:
+  root: experiments/E4
