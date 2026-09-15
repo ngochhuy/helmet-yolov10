@@ -4,12 +4,18 @@ from __future__ import annotations
 
 import argparse
 import traceback
+from contextlib import nullcontext
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
 import yaml
 
+from helmet_yolov10.augmentation.enhanced import (
+    AugmentationConfigError,
+    e2_augmentation_context,
+    parse_e2_augmentation,
+)
 from helmet_yolov10.data.validation import (
     DatasetValidationError,
     validate_dataset,
@@ -29,14 +35,15 @@ def _project_path(value: str | Path) -> Path:
     return path.resolve() if path.is_absolute() else (PROJECT_ROOT / path).resolve()
 
 
-def _validate_baseline_config(config: dict[str, Any]) -> None:
+def _validate_experiment_config(config: dict[str, Any]) -> None:
     require_sections(config, "experiment", "model", "training", "output")
     experiment = config["experiment"]
     model = config["model"]
     training = config["training"]
 
-    if experiment.get("id") != "E1":
-        raise ConfigError("Baseline trainer requires experiment.id = 'E1'")
+    experiment_id = experiment.get("id")
+    if experiment_id not in {"E1", "E2"}:
+        raise ConfigError("Trainer requires experiment.id to be 'E1' or 'E2'")
     if str(model.get("architecture", "")).lower() != "yolov10n":
         raise ConfigError("Baseline architecture must be YOLOv10n")
     if training.get("imgsz") != 640:
@@ -48,6 +55,19 @@ def _validate_baseline_config(config: dict[str, Any]) -> None:
         raise ConfigError(f"Training values must be positive: {', '.join(invalid)}")
     if not isinstance(training.get("seed"), int):
         raise ConfigError("training.seed must be an integer")
+
+    if experiment_id == "E2":
+        try:
+            parse_e2_augmentation(config.get("augmentation"))
+        except AugmentationConfigError as exc:
+            raise ConfigError(f"Invalid E2 augmentation configuration: {exc}") from exc
+
+
+def _validate_baseline_config(config: dict[str, Any]) -> None:
+    """Backward-compatible E1-specific validation used by existing callers."""
+    _validate_experiment_config(config)
+    if config["experiment"].get("id") != "E1":
+        raise ConfigError("Baseline validation requires experiment.id = 'E1'")
 
 
 def _load_backend() -> Callable[..., Any]:
@@ -77,7 +97,7 @@ def _new_run_directory(output_root: Path, run_name: str) -> Path:
     return run_dir
 
 
-def train_baseline(
+def train_experiment(
     config_path: str | Path,
     *,
     run_name: str | None = None,
@@ -86,12 +106,18 @@ def train_baseline(
     validate_only: bool = False,
     backend_factory: Callable[..., Any] | None = None,
 ) -> Path | None:
-    """Validate inputs and train E1, returning its run directory."""
+    """Validate inputs and train E1 or E2, returning its run directory."""
     config_file = _project_path(config_path)
     config = load_config(config_file)
-    _validate_baseline_config(config)
+    _validate_experiment_config(config)
 
     training = dict(config["training"])
+    experiment = config["experiment"]
+    e2_settings = (
+        parse_e2_augmentation(config["augmentation"])
+        if experiment["id"] == "E2"
+        else None
+    )
     data_yaml = _project_path(training.pop("data"))
     dataset_report = validate_dataset(data_yaml, PROJECT_ROOT)
     LOGGER.info(
@@ -114,7 +140,7 @@ def train_baseline(
     seed_everything(training["seed"], bool(training.get("deterministic", True)))
 
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    selected_name = run_name or f"baseline_seed{training['seed']}_{timestamp}"
+    selected_name = run_name or f"{experiment['name']}_seed{training['seed']}_{timestamp}"
     output_root = _project_path(config["output"]["root"])
     run_dir = _new_run_directory(output_root, selected_name)
 
@@ -130,7 +156,7 @@ def train_baseline(
     metadata.update(
         {
             "status": "running",
-            "experiment_id": config["experiment"]["id"],
+            "experiment_id": experiment["id"],
             "run_name": selected_name,
             "seed": training["seed"],
             "weights": str(weights_path),
@@ -152,7 +178,11 @@ def train_baseline(
 
     try:
         backend = (backend_factory or _load_backend())(str(weights_path))
-        backend.train(**training)
+        augmentation_context = (
+            e2_augmentation_context(e2_settings) if e2_settings is not None else nullcontext()
+        )
+        with augmentation_context:
+            backend.train(**training)
     except Exception as exc:
         metadata["status"] = "failed"
         metadata["error"] = f"{type(exc).__name__}: {exc}"
@@ -163,12 +193,33 @@ def train_baseline(
     metadata["status"] = "completed"
     metadata["completed_at_utc"] = datetime.now(timezone.utc).isoformat()
     write_json(run_dir / "metadata.json", metadata)
-    LOGGER.info("Baseline completed: %s", run_dir)
+    LOGGER.info("%s completed: %s", experiment["id"], run_dir)
     return run_dir
 
 
+def train_baseline(
+    config_path: str | Path,
+    *,
+    run_name: str | None = None,
+    device: str | int | None = None,
+    weights: str | Path | None = None,
+    validate_only: bool = False,
+    backend_factory: Callable[..., Any] | None = None,
+) -> Path | None:
+    """Train E1; retained as the original public baseline entry point."""
+    _validate_baseline_config(load_config(_project_path(config_path)))
+    return train_experiment(
+        config_path,
+        run_name=run_name,
+        device=device,
+        weights=weights,
+        validate_only=validate_only,
+        backend_factory=backend_factory,
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Train the reproducible E1 YOLOv10n baseline")
+    parser = argparse.ArgumentParser(description="Train the reproducible E1/E2 YOLOv10n experiment")
     parser.add_argument("--config", default="configs/E1_baseline.yaml")
     parser.add_argument("--run-name", help="Unique output directory name")
     parser.add_argument("--device", help="Override the configured device, e.g. 0 or cpu")
@@ -185,7 +236,7 @@ def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
     try:
-        train_baseline(
+        train_experiment(
             args.config,
             run_name=args.run_name,
             device=args.device,

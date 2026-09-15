@@ -12,6 +12,12 @@ dependencies = [
 dev = [
     "pytest>=8,<10",
 ]
+train = [
+    "albumentations>=1.4,<3",
+]
+enhancement = [
+    "opencv-python-headless>=4.8,<6",
+]
 
 [project.scripts]
 helmet-train = "helmet_yolov10.training.train:main"

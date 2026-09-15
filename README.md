@@ -209,6 +209,22 @@ checkpoint, metric và metadata môi trường trong thư mục của từng run
 `scripts/benchmark.py` vẫn là placeholder và sẽ được hoàn thiện ở bước đánh giá
 accuracy–efficiency.
 
+## Thí nghiệm E2: data augmentation
+
+E2 giữ nguyên model, dataset split, seed và protocol huấn luyện của E1. Chỉ
+train split nhận các phép brightness/contrast, Gaussian noise và Gaussian blur;
+validation/test không bị augmentation. Các tham số E2 được lưu tại
+`configs/E2_augmentation.yaml`.
+
+```bash
+uv sync --extra dev --extra train
+uv run python scripts/train.py --config configs/E2_augmentation.yaml --validate-only
+uv run python scripts/train.py --config configs/E2_augmentation.yaml --device 0 --run-name augmentation_seed42
+```
+
+Mở `notebooks/E2_augmentation_training.ipynb` để chạy từng bước, kiểm tra input
+và đánh giá `best.pt` trên test split không augmentation.
+
 ## Kiểm thử
 
 ```bash

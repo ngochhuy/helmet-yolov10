@@ -1,0 +1,34 @@
+extends: base.yaml
+
+experiment:
+  id: E2
+  name: augmentation
+  description: YOLOv10n with realistic train-only photometric augmentation
+
+# These transforms are added to Ultralytics' train pipeline only. Validation
+# and test images remain untouched. Values are intentionally moderate because
+# helmet details are often small.
+augmentation:
+  brightness_contrast:
+    probability: 0.40
+    brightness_limit: 0.20
+    contrast_limit: 0.15
+  gaussian_noise:
+    probability: 0.15
+    sigma_min: 5.0
+    sigma_max: 15.0
+  gaussian_blur:
+    probability: 0.15
+    kernel_min: 3
+    kernel_max: 5
+    sigma_min: 0.1
+    sigma_max: 1.5
+
+training:
+  # Native YOLO geometry. E1 values remain the reference protocol.
+  translate: 0.15
+  scale: 0.7
+  close_mosaic: 15
+
+output:
+  root: experiments/E2
