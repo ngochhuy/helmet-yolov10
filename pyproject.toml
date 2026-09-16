@@ -5,7 +5,12 @@ description = "Reproducible YOLOv10n helmet-detection experiments."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "huggingface-hub>=1.31.0",
+    "numpy>=1.26,<2.4",
     "PyYAML>=6.0,<7",
+    "torch==2.5.1",
+    "torchvision==0.20.1",
+    "ultralytics",
 ]
 
 [project.optional-dependencies]
@@ -23,6 +28,10 @@ enhancement = [
 helmet-train = "helmet_yolov10.training.train:main"
 helmet-evaluate = "helmet_yolov10.evaluation.evaluate:main"
 
+[[tool.uv.index]]
+name = "pytorch-cu121"
+url = "https://download.pytorch.org/whl/cu121"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
@@ -33,3 +42,8 @@ packages = ["src/helmet_yolov10"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+
+[tool.uv.sources]
+ultralytics = { git = "https://github.com/THU-MIG/yolov10.git" }
+torch = { index = "pytorch-cu121" }
+torchvision = { index = "pytorch-cu121" }

@@ -1,12 +1,9 @@
 # Dataset paths are resolved from the repository root by this project.
 path: data/processed
-train: images/train
-val: images/val
-test: images/test
+train: train/images
+val: val/images
+test: test/images
 
-# Canonical class mapping after normalising Hard Hat Workers/SHWD annotations.
-# Update this mapping before training if the final prepared dataset differs.
 names:
   0: helmet
   1: head
-  2: person
