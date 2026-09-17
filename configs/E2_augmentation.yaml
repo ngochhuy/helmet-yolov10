@@ -10,8 +10,8 @@ experiment:
 # helmet details are often small.
 augmentation:
   brightness_contrast:
-    probability: 0.40
-    brightness_limit: 0.20
+    probability: 0.40 # 40% ảnh sẽ bị thay đổi độ sáng/tương phản
+    brightness_limit: 0.20  # ±20% độ sáng
     contrast_limit: 0.15
   gaussian_noise:
     probability: 0.15
@@ -26,9 +26,9 @@ augmentation:
 
 training:
   # Native YOLO geometry. E1 values remain the reference protocol.
-  translate: 0.15
-  scale: 0.7
-  close_mosaic: 15
+  translate: 0.15 # Tăng dịch chuyển (E1 là 0.1)
+  scale: 0.7 # Tăng scale jitter (E1 là 0.5)
+  close_mosaic: 15 # Tắt mosaic muộn hơn E1 (10 epoch)
 
 output:
-  root: experiments/E2
+  root: experiments/E2_augmentation

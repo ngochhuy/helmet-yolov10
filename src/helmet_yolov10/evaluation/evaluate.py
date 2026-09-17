@@ -37,6 +37,7 @@ def evaluate_checkpoint(
     checkpoint: str | Path,
     config_path: str | Path = "configs/E1_baseline.yaml",
     *,
+    data_path: str | Path | None = None,
     run_name: str | None = None,
     device: str | int | None = None,
     backend_factory: Callable[..., Any] | None = None,
@@ -48,7 +49,10 @@ def evaluate_checkpoint(
 
     config = load_config(_project_path(config_path))
     require_sections(config, "training", "evaluation", "output")
-    data_yaml = _project_path(config["training"]["data"])
+    if data_path is not None:
+        data_yaml = _project_path(data_path)
+    else:
+        data_yaml = _project_path(config["training"]["data"])
     dataset_report = validate_dataset(data_yaml, PROJECT_ROOT)
 
     evaluation = dict(config["evaluation"])
@@ -100,6 +104,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Evaluate an E1 checkpoint on test data")
     parser.add_argument("--checkpoint", required=True)
     parser.add_argument("--config", default="configs/E1_baseline.yaml")
+    parser.add_argument("--data", help="Custom data.yaml path for subtest evaluation")
     parser.add_argument("--run-name")
     parser.add_argument("--device")
     return parser
@@ -112,9 +117,11 @@ def main() -> None:
         evaluate_checkpoint(
             args.checkpoint,
             args.config,
+            data_path=args.data,
             run_name=args.run_name,
             device=args.device,
         )
+
     except (DatasetValidationError, FileNotFoundError, FileExistsError) as exc:
         parser.exit(2, f"error: {exc}\n")
 

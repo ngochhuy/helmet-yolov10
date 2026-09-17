@@ -1,0 +1,7 @@
+subtest_id,description,precision,recall,map50,map50_95
+test_all,Toàn bộ Test set,0.9430,0.8850,0.9440,0.6490
+test_normal,Ảnh điều kiện bình thường,0.9440,0.8850,0.9440,0.6480
+test_lowlight,Ảnh thiếu sáng tự nhiên,0.9810,0.8720,0.9650,0.6870
+test_lowlight_synth,Ảnh thiếu sáng tổng hợp,0.8070,0.6920,0.7600,0.4690
+test_small,Mũ bảo hộ kích thước nhỏ,0.9430,0.7330,0.8560,0.4910
+test_lowlight_small,Thiếu sáng & Mũ kích thước nhỏ,0.7980,0.5170,0.5760,0.3040

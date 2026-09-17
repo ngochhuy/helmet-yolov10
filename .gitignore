@@ -26,3 +26,6 @@ results/metrics/*
 !results/metrics/.gitkeep
 results/figures/*
 !results/figures/.gitkeep
+
+*.zip
+*.pt

@@ -1,0 +1,27 @@
+extends: base.yaml
+
+experiment:
+  id: E5
+  name: full_method
+  description: Combined methodology using E2-trained model weights (Data Augmentation), E3 Low-light Enhancement (Gamma Correction gamma=0.7), and E4 Tiled Inference (640x640, 25% overlap)
+
+# Từ E2: dùng model đã train với augmentation (không phải E1 baseline)
+model:
+  architecture: YOLOv10n
+  weights: experiments/E2_augmentation/augmentation_b16_seed42/weights/best.pt
+
+# Từ E3: dùng CLAHE (giả sử CLAHE thắng Gamma ở bước val)
+enhancement:
+  method: gamma
+  gamma: 0.7
+  
+# Từ E4: dùng tiled inference overlap 25% (giả sử 25% thắng ở bước val)
+tiled_inference:
+  tile_size: [640, 640]
+  overlap: 0.25
+  confidence_threshold: 0.001
+  merge_iou_threshold: 0.7
+  merge_method: class_aware_nms
+
+output:
+  root: experiments/E5_full_method

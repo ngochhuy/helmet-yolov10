@@ -76,7 +76,7 @@ def test_e1_config_resolves_base_values() -> None:
     assert config["model"]["architecture"] == "YOLOv10n"
     assert config["training"]["imgsz"] == 640
     assert config["training"]["seed"] == 42
-    assert config["output"]["root"] == "experiments/E1"
+    assert config["output"]["root"] == "experiments/E1_baseline"
 
 
 def test_dataset_validator_reports_all_splits(tmp_path: Path) -> None:

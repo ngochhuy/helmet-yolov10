@@ -7,7 +7,7 @@ training:
   data: configs/data.yaml
   imgsz: 640
   epochs: 100
-  batch: 4
+  batch: 16
   optimizer: SGD
   lr0: 0.01
   lrf: 0.01

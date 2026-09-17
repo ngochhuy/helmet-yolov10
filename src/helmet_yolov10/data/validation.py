@@ -114,6 +114,8 @@ def validate_dataset(data_yaml: str | Path, project_root: str | Path) -> dict[st
     for split in ("train", "val", "test"):
         split_value = config.get(split)
         if not isinstance(split_value, str) or not split_value.strip():
+            if split == "train":
+                continue
             raise DatasetValidationError(f"Dataset YAML must define '{split}'")
         image_dir = (root / split_value).resolve()
         if not image_dir.is_dir():
@@ -159,12 +161,17 @@ def validate_dataset(data_yaml: str | Path, project_root: str | Path) -> dict[st
         reports[split] = asdict(report)
 
     for first, second in (("train", "val"), ("train", "test"), ("val", "test")):
-        overlap = split_files[first] & split_files[second]
-        if overlap:
-            example = sorted(str(path) for path in overlap)[:3]
-            raise DatasetValidationError(
-                f"Potential split leakage ({first}/{second}) for relative IDs: {example}"
-            )
+        if first not in split_files or second not in split_files:
+            continue
+        dir_first = (root / config[first]).resolve()
+        dir_second = (root / config[second]).resolve()
+        if dir_first != dir_second:
+            overlap = split_files[first] & split_files[second]
+            if overlap:
+                example = sorted(str(path) for path in overlap)[:3]
+                raise DatasetValidationError(
+                    f"Potential split leakage ({first}/{second}) for relative IDs: {example}"
+                )
 
     return {
         "data_yaml": str(yaml_path),
